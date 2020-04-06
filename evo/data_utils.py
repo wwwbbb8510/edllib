@@ -1,0 +1,143 @@
+"""
+data utils where data related tools for EDL are developed
+"""
+
+import pandas as pd
+from pandas import DataFrame
+import os
+
+
+class FileStorage:
+    """
+    Base class of file storage
+    """
+
+    def __init__(self, path):
+        """
+        class constructor
+        :param path: full path to store the data
+        :type path: str
+        """
+        self.path = path
+        self.loaded_data = None
+        self.load_data()
+
+    def save_or_append_data(self, data, column_names, file_type='csv'):
+        """
+        save data if the file doesn't exist; otherwise, append the data
+        :param data: data to save or append, which is 2-d list
+        :type data: list
+        :param column_names: column names
+        :type column_names: list
+        :param file_type: file type to store the data
+        :type file_type: str
+        :return: whether it's save successfully
+        :rtype: bool
+        """
+        if not os.path.exists(self.path):
+            save_result = self.save_data(data, column_names, file_type)
+        else:
+            save_result = self.append_data(data, column_names, file_type)
+        return save_result
+
+    def save_data(self, data, column_names, file_type='csv'):
+        """
+        save data of a 2-d list to file
+        :param data: data to be saved, which is a 2-d list
+        :type data: list
+        :param column_names: column names of the data, which is a 1-d list
+        :type column_names: list
+        :param file_type: the file type for the file to store the data, default:csv
+        :type file_type: str
+        :return: whether the data is saved successfully
+        :rtype: bool
+        """
+        is_success = False
+        df_data = pd.DataFrame(data, columns=column_names)
+        if file_type == 'csv':
+            if df_data.to_csv(self.path, index=False):
+                is_success = True
+        return is_success
+
+    def append_data(self, data, column_names, file_type='csv'):
+        """
+        append data of a 2-d list to file
+        :param data: data to be saved, which is a 2-d list
+        :type data: list
+        :param column_names: column names of the data, which is a 1-d list
+        :type column_names: list
+        :param file_type: the file type for the file to store the data, default:csv
+        :type file_type: str
+        :return: whether the data is saved successfully
+        :rtype: bool
+        """
+        is_success = False
+        df_data = pd.DataFrame(data, columns=column_names)
+        if file_type == 'csv':
+            if df_data.to_csv(self.path, mode='a', index=False, header=False):
+                is_success = True
+        return is_success
+
+    def search_by_features(self, row, non_feature_columns=[]):
+        """
+        search a row from the loaded data
+        :param row: the data used to be searched, which is a 1-d list
+        :type row: list
+        :param non_feature_columns: column names of non features, e.g. class labels
+        :type non_feature_columns: list
+        :return: the search result
+        :rtype: DataFrame
+        """
+        df_result = pd.DataFrame([])
+        if not self.loaded_data.empty:
+            str_query = ''
+            for index, col_name in enumerate(self.loaded_data.columns):
+                if col_name not in non_feature_columns:
+                    col_query = col_name + '==' + row[index]
+                    str_query += col_query if index == 0 else ' and ' + col_query
+            if not str_query == '':
+                df_result = self.loaded_data.query(str_query)
+
+        return df_result
+
+    def load_data(self, reload=False):
+        """
+        load data from csv
+        :param reload: force to reload
+        :type reload: bool
+        """
+        if self.loaded_data is None or reload is True:
+            self.loaded_data = pd.read_csv(self.path)
+
+    def _filter_data_append(self, data, non_feature_columns=[]):
+        """
+        Filter data to append to avoid duplicated records
+        :param data:
+        :type data:
+        :return:
+        :rtype:
+        """
+        filtered_data = []
+        self.load_data(reload=True)
+        if not self.loaded_data.empty:
+            for row in data:
+                df_result = self.search_by_features(row, non_feature_columns)
+                if df_result.empty:
+                    filtered_data.append(row)
+        else:
+            filtered_data = data
+        return filtered_data
+
+
+class FitnessEvaluationData(FileStorage):
+    """
+    Save data for Surrogate SVC
+    """
+
+    def __init__(self, path):
+        """
+        class constructor
+        :param path: full path to store data
+        :type path: str
+        """
+        super(FitnessEvaluationData, self).__init__(path)
