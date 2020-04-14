@@ -18,8 +18,8 @@ class FileStorage:
         :param path: full path to store the data
         :type path: str
         """
-        self.path = path
-        self.loaded_data = None
+        self._path = path
+        self._loaded_data = None
         self.load_data()
 
     def save_or_append_data(self, data, column_names, file_type='csv'):
@@ -78,23 +78,25 @@ class FileStorage:
                 is_success = True
         return is_success
 
-    def search_by_features(self, row, non_feature_columns=[]):
+    def search_by_features(self, row, excluded_columns=[]):
         """
         search a row from the loaded data
         :param row: the data used to be searched, which is a 1-d list
         :type row: list
-        :param non_feature_columns: column names of non features, e.g. class labels
-        :type non_feature_columns: list
+        :param excluded_columns: column names of non features, e.g. class labels
+        :type excluded_columns: list
         :return: the search result
         :rtype: DataFrame
         """
         df_result = pd.DataFrame([])
         if not self.loaded_data.empty:
             str_query = ''
-            for index, col_name in enumerate(self.loaded_data.columns):
-                if col_name not in non_feature_columns:
-                    col_query = col_name + '==' + row[index]
-                    str_query += col_query if index == 0 else ' and ' + col_query
+            val_index = 0
+            for col_name in self.loaded_data.columns:
+                if col_name not in excluded_columns:
+                    col_query = col_name + '==' + row[val_index]
+                    str_query += col_query if val_index == 0 else ' and ' + col_query
+                    val_index += 1
             if not str_query == '':
                 df_result = self.loaded_data.query(str_query)
 
@@ -107,9 +109,9 @@ class FileStorage:
         :type reload: bool
         """
         if self.loaded_data is None or reload is True:
-            self.loaded_data = pd.read_csv(self.path)
+            self._loaded_data = pd.read_csv(self.path)
 
-    def _filter_data_append(self, data, non_feature_columns=[]):
+    def _filter_data_append(self, data, excluded_columns=[]):
         """
         Filter data to append to avoid duplicated records
         :param data:
@@ -121,12 +123,30 @@ class FileStorage:
         self.load_data(reload=True)
         if not self.loaded_data.empty:
             for row in data:
-                df_result = self.search_by_features(row, non_feature_columns)
+                df_result = self.search_by_features(row, excluded_columns)
                 if df_result.empty:
                     filtered_data.append(row)
         else:
             filtered_data = data
         return filtered_data
+
+    @property
+    def path(self):
+        """
+        getter method for _path
+        :return: path
+        :rtype: str
+        """
+        return self._path
+    
+    @property
+    def loaded_data(self):
+        """
+        getter method for _loaded_data
+        :return: the loaded data
+        :rtype: DataFrame
+        """
+        return self._loaded_data
 
 
 class FitnessEvaluationData(FileStorage):

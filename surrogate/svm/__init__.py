@@ -1,4 +1,4 @@
-from .model import SVCModel
-from .data import SVCData
+from .model import SVCModelDenseBlock
+from .data import SVCDataDenseBlock
 
-__all__ = ['SVCModel', 'SVCData']
+__all__ = ['SVCModelDenseBlock', 'SVCDataDenseBlock']
