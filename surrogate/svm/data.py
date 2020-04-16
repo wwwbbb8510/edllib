@@ -139,6 +139,23 @@ class SVCDataDenseBlock(SVCDataBase):
         column_names = header_block + header_losses + header_acc_history + ['acc_best']
         return self.fe_data.loaded_data[column_names]
 
+    @staticmethod
+    def extract_fe_data_from_dataframe(df, epoch_extracted=10):
+        """
+        extract block, losses and acc up to a certain number of epochs
+        :param df: subset of the fitness evaluation data
+        :type df: DataFrame
+        :param epoch_extracted: number of epochs to extract losses and acc
+        :type epoch_extracted: int
+        :return: extracted dataframe
+        :rtype: DataFrame
+        """
+        header_block = SVCDataBase._generate_header_with_prefix('block', SVCDataDenseBlock.DATA_DIMENSIONS['block'])
+        header_losses = SVCDataBase._generate_header_with_prefix('losses', epoch_extracted)
+        header_acc_history = SVCDataBase._generate_header_with_prefix('acc_history', epoch_extracted)
+        column_names = header_block + header_losses + header_acc_history
+        return df[column_names]
+
     @property
     def constructed_data(self):
         """
