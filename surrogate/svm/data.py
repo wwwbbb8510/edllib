@@ -71,7 +71,7 @@ class SVCDataDenseBlock(SVCDataBase):
         """
         Format fitness evaluation data and save the data to a csv file
         :param fe_data: data from fitness evaluation. The format is list[dict(block, losses, acc_history, acc_best)]
-        :type fe_data: list
+        :type fe_data: dict
         :return: whether it is save successfully
         :rtype: bool
         """

@@ -37,7 +37,7 @@ class SVCModelBase:
         :return: the scores as an array
         :rtype: np.array
         """
-        self._scores = cross_val_score(self.svc_model, self._svc_data['X'], self._svc_data['y'], cv=cv)
+        self._scores = cross_val_score(self.svc_model, self.svc_data['X'], self.svc_data['y'], cv=cv)
         return self._scores
 
     def fit(self, calc_scores=True, cv=10):
@@ -49,7 +49,7 @@ class SVCModelBase:
         :type cv: int
         """
         self.calc_selection_score(cv=cv) if calc_scores is True else None
-        self.svc_model.fit(self._svc_data['X'], self._svc_data['y'])
+        self.svc_model.fit(self.svc_data['X'], self.svc_data['y'])
 
     def predict(self, data_X):
         """
@@ -60,9 +60,20 @@ class SVCModelBase:
         :rtype: array
         """
         y = None
-        if self._scores is not None and self.scores.mean() > self._threshold:
+        if self.is_activated():
             y = self.svc_model.predict(data_X)
         return y
+
+    def is_activated(self):
+        """
+        check whether the surrogate model is activated (>threshold)
+        :return: activated or not
+        :rtype: bool
+        """
+        if self._scores is not None and self.scores.mean() > self._threshold:
+            return True
+        else:
+            return False
 
     @property
     def svc_model(self):
@@ -81,6 +92,24 @@ class SVCModelBase:
         :rtype: array
         """
         return self._scores
+
+    @property
+    def svc_data(self):
+        """
+        getter method for _svc_data
+        :return: data to fit svc model. Dict with 2-d list X and 1-d list y
+        :rtype: dict
+        """
+        return self._svc_data
+
+    @svc_data.setter
+    def svc_data(self, svc_data):
+        """
+        setter method for _svc_data
+        :param svc_data: data to fit svc model. Dict with 2-d list X and 1-d list y
+        :type svc_data: dict
+        """
+        self._svc_data = svc_data
 
 
 class SVCModelDenseBlock(SVCModelBase):
@@ -109,6 +138,13 @@ class SVCModelDenseBlock(SVCModelBase):
         data_y = constructed_svc_data.iloc[:, -1].to_numpy()
         svc_data = {'X': data_X, 'y': data_y}
         return svc_data
+
+    def reload_svc_data(self):
+        """
+        reload data and construct svc data
+        """
+        svc_data = self.convert_data_to_svc_data()
+        self.svc_data = svc_data
 
     @property
     def data(self):
