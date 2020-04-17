@@ -25,7 +25,7 @@ class SVCModelBase:
         """
         self._svc_data = svc_data
         self._kernel = kernel
-        self._svc_model = svm.SVC(kernel='rbf')
+        self._svc_model = svm.SVC(kernel='rbf', gamma='scale')
         self._scores = None
         self._threshold = threshold
 
@@ -134,9 +134,12 @@ class SVCModelDenseBlock(SVCModelBase):
         :rtype: dict
         """
         constructed_svc_data = self.data.construct_svc_data()
-        data_X = constructed_svc_data.iloc[:, :-1].to_numpy()
-        data_y = constructed_svc_data.iloc[:, -1].to_numpy()
-        svc_data = {'X': data_X, 'y': data_y}
+        if constructed_svc_data.empty:
+            svc_data = {}
+        else:
+            data_X = constructed_svc_data.iloc[:, :-1].to_numpy()
+            data_y = constructed_svc_data.iloc[:, -1].to_numpy()
+            svc_data = {'X': data_X, 'y': data_y}
         return svc_data
 
     def reload_svc_data(self):

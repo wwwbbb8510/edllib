@@ -55,8 +55,11 @@ class FileStorage:
         is_success = False
         df_data = pd.DataFrame(data, columns=column_names)
         if file_type == 'csv':
-            if df_data.to_csv(self.path, index=False):
+            try:
+                df_data.to_csv(self.path, index=False)
                 is_success = True
+            except:
+                is_success = False
         return is_success
 
     def append_data(self, data, column_names, file_type='csv'):
@@ -74,8 +77,11 @@ class FileStorage:
         is_success = False
         df_data = pd.DataFrame(data, columns=column_names)
         if file_type == 'csv':
-            if df_data.to_csv(self.path, mode='a', index=False, header=False):
+            try:
+                df_data.to_csv(self.path, mode='a', index=False, header=False)
                 is_success = True
+            except:
+                is_success = False
         return is_success
 
     def search_by_features(self, row, excluded_columns=[]):
@@ -90,15 +96,19 @@ class FileStorage:
         """
         df_result = pd.DataFrame([])
         if not self.loaded_data.empty:
-            str_query = ''
+            list_query = []
             val_index = 0
             for col_name in self.loaded_data.columns:
                 if col_name not in excluded_columns:
-                    col_query = col_name + '==' + row[val_index]
-                    str_query += col_query if val_index == 0 else ' and ' + col_query
+                    col_query = col_name + '==' + str(row[val_index])
+                    list_query.append(col_query)
                     val_index += 1
-            if not str_query == '':
-                df_result = self.loaded_data.query(str_query)
+            if len(list_query) > 0:
+                if len(list_query) > 16:
+                    df_result = self.loaded_data.query(' and '.join(list_query[0:16]))
+                    df_result = df_result.query(' and '.join(list_query[16:]))
+                else:
+                    df_result = self.loaded_data.query(' and '.join(list_query))
 
         return df_result
 
@@ -109,7 +119,10 @@ class FileStorage:
         :type reload: bool
         """
         if self.loaded_data is None or reload is True:
-            self._loaded_data = pd.read_csv(self.path)
+            try:
+                self._loaded_data = pd.read_csv(self.path)
+            except:
+                self._loaded_data = pd.DataFrame()
 
     def _filter_data_append(self, data, excluded_columns=[]):
         """

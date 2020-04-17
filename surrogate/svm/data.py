@@ -81,7 +81,7 @@ class SVCDataDenseBlock(SVCDataBase):
             row_losses = SVCDataBase._list_fill_none(dict_row['losses'], SVCDataDenseBlock.DATA_DIMENSIONS['losses'])
             row_acc_history = SVCDataBase._list_fill_none(dict_row['acc_history'],
                                                           SVCDataDenseBlock.DATA_DIMENSIONS['acc_history'])
-            row = row_block + row_losses + row_acc_history + dict_row['acc_best']
+            row = row_block + row_losses + row_acc_history + [dict_row['acc_best']]
             modified_data.append(row)
         header_block = SVCDataBase._generate_header_with_prefix('block', SVCDataDenseBlock.DATA_DIMENSIONS['block'])
         header_losses = SVCDataBase._generate_header_with_prefix('losses', SVCDataDenseBlock.DATA_DIMENSIONS['losses'])
@@ -119,9 +119,9 @@ class SVCDataDenseBlock(SVCDataBase):
             for index_2, row_2 in df_extracted.iterrows():
                 if not row_1.equals(row_2):
                     flag = 1 if row_1['acc_best'] < row_2['acc_best'] else 0
-                    s_row = row_1.drop('acc_best').append(row_2.drop('acc_best')).reset_index(drop=True)
-                    s_row.append([flag])
-                    df_constructed.append(s_row, ignore_index=True)
+                    s_row = row_1.drop('acc_best').append(row_2.drop('acc_best')).append(pd.Series([flag]))
+                    s_row = s_row.reset_index(drop=True)
+                    df_constructed = df_constructed.append(s_row, ignore_index=True)
         self._constructed_data = df_constructed
         return self._constructed_data
 
@@ -133,11 +133,14 @@ class SVCDataDenseBlock(SVCDataBase):
         :return: extracted dataframe
         :rtype: DataFrame
         """
-        header_block = SVCDataBase._generate_header_with_prefix('block', SVCDataDenseBlock.DATA_DIMENSIONS['block'])
-        header_losses = SVCDataBase._generate_header_with_prefix('losses', epoch_extracted)
-        header_acc_history = SVCDataBase._generate_header_with_prefix('acc_history', epoch_extracted)
-        column_names = header_block + header_losses + header_acc_history + ['acc_best']
-        return self.fe_data.loaded_data[column_names]
+        if self.fe_data.loaded_data.empty:
+            return pd.DataFrame()
+        else:
+            header_block = SVCDataBase._generate_header_with_prefix('block', SVCDataDenseBlock.DATA_DIMENSIONS['block'])
+            header_losses = SVCDataBase._generate_header_with_prefix('losses', epoch_extracted)
+            header_acc_history = SVCDataBase._generate_header_with_prefix('acc_history', epoch_extracted)
+            column_names = header_block + header_losses + header_acc_history + ['acc_best']
+            return self.fe_data.loaded_data[column_names]
 
     @staticmethod
     def extract_fe_data_from_dataframe(df, epoch_extracted=10):
