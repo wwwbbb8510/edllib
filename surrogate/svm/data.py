@@ -58,7 +58,7 @@ class SVCDataDenseBlock(SVCDataBase):
     SVC data class for evolving dense block
     """
 
-    def __init__(self, path):
+    def __init__(self, path, custom_data_dimensions=None):
         """
         class constructor
         :param path: file path to load the data
@@ -66,6 +66,10 @@ class SVCDataDenseBlock(SVCDataBase):
         """
         super(SVCDataDenseBlock, self).__init__(path)
         self._constructed_data = None
+        if custom_data_dimensions is None:
+            self._data_dimensions = SVCDataDenseBlock.DATA_DIMENSIONS
+        else:
+            self._data_dimensions = custom_data_dimensions
 
     def save_svc_fitness_eval_data(self, fe_data):
         """
@@ -77,16 +81,14 @@ class SVCDataDenseBlock(SVCDataBase):
         """
         modified_data = []
         for dict_row in fe_data:
-            row_block = SVCDataBase._list_fill_none(dict_row['block'], SVCDataDenseBlock.DATA_DIMENSIONS['block'])
-            row_losses = SVCDataBase._list_fill_none(dict_row['losses'], SVCDataDenseBlock.DATA_DIMENSIONS['losses'])
-            row_acc_history = SVCDataBase._list_fill_none(dict_row['acc_history'],
-                                                          SVCDataDenseBlock.DATA_DIMENSIONS['acc_history'])
+            row_block = SVCDataBase._list_fill_none(dict_row['block'], self.block_dimensions)
+            row_losses = SVCDataBase._list_fill_none(dict_row['losses'], self.losses_dimensions)
+            row_acc_history = SVCDataBase._list_fill_none(dict_row['acc_history'], self.acc_history_dimensions)
             row = row_block + row_losses + row_acc_history + [dict_row['acc_best']]
             modified_data.append(row)
-        header_block = SVCDataBase._generate_header_with_prefix('block', SVCDataDenseBlock.DATA_DIMENSIONS['block'])
-        header_losses = SVCDataBase._generate_header_with_prefix('losses', SVCDataDenseBlock.DATA_DIMENSIONS['losses'])
-        header_acc_history = SVCDataBase._generate_header_with_prefix('acc_history',
-                                                                      SVCDataDenseBlock.DATA_DIMENSIONS['acc_history'])
+        header_block = SVCDataBase._generate_header_with_prefix('block', self.block_dimensions)
+        header_losses = SVCDataBase._generate_header_with_prefix('losses', self.losses_dimensions)
+        header_acc_history = SVCDataBase._generate_header_with_prefix('acc_history', self.acc_history_dimensions)
         column_names = header_block + header_losses + header_acc_history + ['acc_best']
         return self.fe_data.save_or_append_data(modified_data, column_names)
 
@@ -98,9 +100,8 @@ class SVCDataDenseBlock(SVCDataBase):
         :return: the search result
         :rtype: DataFrame
         """
-        header_losses = SVCDataBase._generate_header_with_prefix('losses', SVCDataDenseBlock.DATA_DIMENSIONS['losses'])
-        header_acc_history = SVCDataBase._generate_header_with_prefix('acc_history',
-                                                                      SVCDataDenseBlock.DATA_DIMENSIONS['acc_history'])
+        header_losses = SVCDataBase._generate_header_with_prefix('losses', self.losses_dimensions)
+        header_acc_history = SVCDataBase._generate_header_with_prefix('acc_history', self.acc_history_dimensions)
         column_names = header_losses + header_acc_history + ['acc_best']
         return self.fe_data.search_by_features(block_config, excluded_columns=column_names)
 
@@ -136,24 +137,27 @@ class SVCDataDenseBlock(SVCDataBase):
         if self.fe_data.loaded_data.empty:
             return pd.DataFrame()
         else:
-            header_block = SVCDataBase._generate_header_with_prefix('block', SVCDataDenseBlock.DATA_DIMENSIONS['block'])
+            header_block = SVCDataBase._generate_header_with_prefix('block', self.block_dimensions)
             header_losses = SVCDataBase._generate_header_with_prefix('losses', epoch_extracted)
             header_acc_history = SVCDataBase._generate_header_with_prefix('acc_history', epoch_extracted)
             column_names = header_block + header_losses + header_acc_history + ['acc_best']
             return self.fe_data.loaded_data[column_names]
 
     @staticmethod
-    def extract_fe_data_from_dataframe(df, epoch_extracted=10):
+    def extract_fe_data_from_dataframe(df, epoch_extracted=10, block_dimensions=None):
         """
         extract block, losses and acc up to a certain number of epochs
         :param df: subset of the fitness evaluation data
         :type df: DataFrame
         :param epoch_extracted: number of epochs to extract losses and acc
         :type epoch_extracted: int
+        :param block_dimensions: the dimensionality of the block config
+        :type block_dimensions: int
         :return: extracted dataframe
         :rtype: DataFrame
         """
-        header_block = SVCDataBase._generate_header_with_prefix('block', SVCDataDenseBlock.DATA_DIMENSIONS['block'])
+        block_dimensions = SVCDataDenseBlock.DATA_DIMENSIONS['block'] if block_dimensions is None else block_dimensions
+        header_block = SVCDataBase._generate_header_with_prefix('block', block_dimensions)
         header_losses = SVCDataBase._generate_header_with_prefix('losses', epoch_extracted)
         header_acc_history = SVCDataBase._generate_header_with_prefix('acc_history', epoch_extracted)
         column_names = header_block + header_losses + header_acc_history
@@ -167,3 +171,19 @@ class SVCDataDenseBlock(SVCDataBase):
         :rtype: DataFrame
         """
         return self._constructed_data
+
+    @property
+    def block_dimensions(self):
+        return self._data_dimensions['block']
+
+    @property
+    def losses_dimensions(self):
+        return self._data_dimensions['losses']
+
+    @property
+    def acc_history_dimensions(self):
+        return self._data_dimensions['acc_history']
+
+    @property
+    def acc_best_dimensions(self):
+        return self._data_dimensions['acc_best']
