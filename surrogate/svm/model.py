@@ -117,15 +117,19 @@ class SVCModelDenseBlock(SVCModelBase):
     SVC surrogate model for evolving dense block
     """
 
-    def __init__(self, data):
+    def __init__(self, data, kernel='rbf', threshold=0.8):
         """
         class constructor
         :param data: data to fit svc model
         :type data: SVCDataDenseBlock
+        :param kernel: kernel function of the svc model
+        :type kernel: str
+        :param threshold: threshold to enable prediction
+        :type threshold: float
         """
         self._data = data
         svc_data = self.convert_data_to_svc_data()
-        super(SVCModelDenseBlock, self).__init__(svc_data)
+        super(SVCModelDenseBlock, self).__init__(svc_data, kernel, threshold)
 
     def convert_data_to_svc_data(self):
         """
