@@ -39,6 +39,7 @@ class SVCModelBase:
         init scaler for normalizing data
         """
         self._scaler = preprocessing.MinMaxScaler().fit(self._svc_data['X'])
+        return self._scaler
 
     def calc_selection_score(self, cv=None, test_size=0.2):
         """
