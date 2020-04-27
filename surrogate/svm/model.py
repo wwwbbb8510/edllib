@@ -32,14 +32,17 @@ class SVCModelBase:
         self._scores = None
         self._threshold = threshold
         self._norm = norm
-        self._scaler = self._init_scaler() if self._norm else None
+        self._scaler = None
+        self._fit_scaler()
 
-    def _init_scaler(self):
+    def _fit_scaler(self):
         """
-        init scaler for normalizing data
+        fit scaler for normalizing data
         """
-        self._scaler = preprocessing.MinMaxScaler().fit(self._svc_data['X'])
-        return self._scaler
+        if len(self.svc_data) > 0 and self._norm:
+            self._scaler = preprocessing.MinMaxScaler().fit(self._svc_data['X'])
+        else:
+            self._scaler = None
 
     def calc_selection_score(self, cv=None, test_size=0.2):
         """
@@ -206,6 +209,7 @@ class SVCModelDenseBlock(SVCModelBase):
         """
         svc_data = self.convert_data_to_svc_data()
         self.svc_data = svc_data
+        self._fit_scaler()
 
     @property
     def data(self):
