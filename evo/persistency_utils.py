@@ -15,7 +15,7 @@ class PopulationPersistent:
         :type path: string
         """
         with open(path, 'wb') as output:
-            pickle.dump(pop, output, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(pop, output, pickle.DEFAULT_PROTOCOL)
         output.close()
 
     @staticmethod
@@ -47,7 +47,7 @@ class IndividualPersistent:
         :type path: string
         """
         with open(path, 'wb') as output:
-            pickle.dump(ind, output, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(ind, output, pickle.DEFAULT_PROTOCOL)
         output.close()
 
     @staticmethod
