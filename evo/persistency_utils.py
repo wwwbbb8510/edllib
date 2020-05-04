@@ -6,16 +6,18 @@ class PopulationPersistent:
         None
 
     @staticmethod
-    def save_populiation(pop, path):
+    def save_populiation(pop, path, protocol=pickle.DEFAULT_PROTOCOL):
         """
         save a population using pickle
         :param pop: the population to be saved
         :type pop: object
         :param path: path to write the serialised population
         :type path: string
+        :param protocol: pkl protocol
+        :type protocol: int
         """
         with open(path, 'wb') as output:
-            pickle.dump(pop, output, pickle.DEFAULT_PROTOCOL)
+            pickle.dump(pop, output, protocol)
         output.close()
 
     @staticmethod
@@ -28,9 +30,22 @@ class PopulationPersistent:
         :rtype: object
         """
         with open(path, 'rb') as input:
-            ind = pickle.load(input)
+            pop = pickle.load(input)
         input.close()
-        return ind
+        return pop
+
+    @staticmethod
+    def convert_pop_pkl_protocol(path, protocol=pickle.DEFAULT_PROTOCOL):
+        """
+        load pop and save to a specified pkl protocol version
+        to solve compatibility issue
+        :param path: pkl file path
+        :type path: str
+        :param protocol: pkl protocol
+        :type protocol: int
+        """
+        pop = PopulationPersistent.load_pop(path)
+        PopulationPersistent.save_populiation(pop, path, protocol)
 
 
 class IndividualPersistent:
