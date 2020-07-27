@@ -172,7 +172,7 @@ class SVCModelDenseBlock(SVCModelBase):
     SVC surrogate model for evolving dense block
     """
 
-    def __init__(self, data, kernel='rbf', threshold=0.8, norm=True):
+    def __init__(self, data, kernel='rbf', threshold=0.8, norm=True, extracted_epochs=10):
         """
         class constructor
         :param data: data to fit svc model
@@ -183,10 +183,13 @@ class SVCModelDenseBlock(SVCModelBase):
         :type threshold: float
         :param norm: normalize data or not
         :type norm: bool
+        :param extracted_epochs: the number of epochs for training losses and accuracy history
+        :type extracted_epochs: int
         """
         self._data = data
         svc_data = self.convert_data_to_svc_data()
         super(SVCModelDenseBlock, self).__init__(svc_data, kernel, threshold, norm)
+        self._extracted_epochs = extracted_epochs
 
     def convert_data_to_svc_data(self):
         """
@@ -194,7 +197,7 @@ class SVCModelDenseBlock(SVCModelBase):
         :return: data to be fed to the svc model, which is a dict contains X and y
         :rtype: dict
         """
-        constructed_svc_data = self.data.construct_svc_data()
+        constructed_svc_data = self.data.construct_svc_data(self.extracted_epochs)
         if constructed_svc_data.empty:
             svc_data = {}
         else:
@@ -219,3 +222,12 @@ class SVCModelDenseBlock(SVCModelBase):
         :rtype: SVCDataDenseBlock
         """
         return self._data
+
+    @property
+    def extracted_epochs(self):
+        """
+        getter method for _extracted_epochs
+        :return: _extracted_epochs
+        :rtype: int
+        """
+        return self._extracted_epochs
