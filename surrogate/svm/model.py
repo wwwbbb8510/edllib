@@ -187,9 +187,9 @@ class SVCModelDenseBlock(SVCModelBase):
         :type extracted_epochs: int
         """
         self._data = data
+        self._extracted_epochs = extracted_epochs
         svc_data = self.convert_data_to_svc_data()
         super(SVCModelDenseBlock, self).__init__(svc_data, kernel, threshold, norm)
-        self._extracted_epochs = extracted_epochs
 
     def convert_data_to_svc_data(self):
         """
