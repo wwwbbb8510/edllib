@@ -7,12 +7,15 @@ from skimage.util import img_as_float
 from skimage import io
 import numpy as np
 
-imagenet_preprocess = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
+
+def get_imagenet_preprocess():
+    imagenet_preprocess = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    return imagenet_preprocess
 
 
 def imagenet_class_to_text_label(image_classes):
@@ -58,5 +61,5 @@ def mask_image_by_batch_blackout_superpixels(orig_image, segments, mask_batch_ar
 
 
 def transform_batch_images_to_tensor(batch_images):
-    input_batch = [imagenet_preprocess(img) for img in batch_images]
+    input_batch = [get_imagenet_preprocess()(img) for img in batch_images]
     return torch.stack(input_batch)
