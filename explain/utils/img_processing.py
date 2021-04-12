@@ -44,7 +44,7 @@ def slic_segment(float_image, ns=100, sigma=5):
 
 
 def mask_image_by_blackout_superpixels(orig_image, segments, mask_array):
-    mask_segment_indexes = [i for i, v in enumerate(mask_array) if v == 1]
+    mask_segment_indexes = [i for i, v in enumerate(mask_array) if v == 0]
     mask_segments = np.ones(segments.shape)
     for x in mask_segment_indexes:
         mask_segments = np.logical_and(mask_segments, segments != x)
