@@ -24,6 +24,9 @@ def load_torch_pre_trained_model(model_name, sub_type=None):
     elif model_name == 'resnet':
         print('resnet' + sub_type)
         model = torch.hub.load('pytorch/vision:v0.6.0', 'resnet' + sub_type, pretrained=True)
+    elif model_name == 'vgg':
+        print('vgg' + sub_type)
+        model = torch.hub.load('pytorch/vision:v0.6.0', 'vgg' + sub_type, pretrained=True)
 
     model.eval()
     return model
